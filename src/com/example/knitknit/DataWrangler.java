@@ -16,7 +16,7 @@ public class DataWrangler {
 
     // Database Constants
     private static final String DATABASE_NAME = "knitknit.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 5;
 
     private static final String PROJECT_TABLE = "project";
     private static final String PROJECT_KEY_ID = "_id";
@@ -36,6 +36,7 @@ public class DataWrangler {
     private static final String COUNTER_KEY_NUMREPEATS = "numRepeats";
 
     // Member Variables
+    public int mChangeNumber;
     private DatabaseHelper mOpenHelper;
     private SQLiteDatabase mDatabase;
 
@@ -53,7 +54,7 @@ public class DataWrangler {
                        PROJECT_KEY_NAME + " tinytext not null, " +
                        PROJECT_KEY_DATECREATED + " datetime not null," +
                        PROJECT_KEY_DATEACCESSED + " datetime null, " +
-                       PROJECT_KEY_TOTALROWS + "integer not null default 0);");
+                       PROJECT_KEY_TOTALROWS + " integer not null default 0);");
 
             // Create the counter table
             db.execSQL("create table " + COUNTER_TABLE + "(" +
@@ -99,6 +100,10 @@ public class DataWrangler {
 
 
     // Project Methods
+    public void addTestProject() {
+        insertProject("Spider Pants");
+    }
+
     public Cursor getProjectCursor() {
         // Returns a Cursor over the list of all projects in the database
         return mDatabase.query(PROJECT_TABLE,
@@ -107,6 +112,7 @@ public class DataWrangler {
     }
 
     public Project insertProject(String name) {
+        Log.w(TAG, "in insertProject()");
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); 
 
         ContentValues projectValues = new ContentValues();
@@ -114,6 +120,7 @@ public class DataWrangler {
         projectValues.put(PROJECT_KEY_DATECREATED, dateFormat.format(new Date()));
 
         long projectID = mDatabase.insert(PROJECT_TABLE, null, projectValues);
+        mChangeNumber += 1;
 
         // Exit if there was a database error
         if (projectID == -1) {
@@ -134,9 +141,9 @@ public class DataWrangler {
                             PROJECT_KEY_DATECREATED,
                             PROJECT_KEY_DATEACCESSED};
 
-        String where = COUNTER_KEY_PROJECTID + "=" + projectID;
+        String where = PROJECT_KEY_ID + "=" + projectID;
 
-        Cursor cursor = mDatabase.query(true, COUNTER_TABLE, columns, where,
+        Cursor cursor = mDatabase.query(true, PROJECT_TABLE, columns, where,
                                         null, null, null, null, null);
         if (cursor != null) {
             cursor.moveToFirst();

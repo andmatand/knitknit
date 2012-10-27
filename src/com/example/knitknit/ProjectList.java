@@ -7,13 +7,16 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MenuInflater;
 import android.widget.SimpleCursorAdapter;
 
 public class ProjectList extends ListActivity implements LoaderManager.LoaderCallbacks<Cursor> {
-    public DataWrangler mDataWrangler;
+    private static final String TAG = "knitknit-ProjectList";
 
+    public DataWrangler mDataWrangler;
     private SimpleCursorAdapter mAdapter;
+    private ProjectCursorLoader mLoader;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -41,7 +44,9 @@ public class ProjectList extends ListActivity implements LoaderManager.LoaderCal
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         // Now create and return a CursorLoader that will take care of
         // creating a Cursor for the data being displayed.
-        return new SimpleCursorLoader(this);
+        mLoader = new ProjectCursorLoader(this, mDataWrangler);
+
+        return mLoader;
     }
 
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
@@ -64,5 +69,20 @@ public class ProjectList extends ListActivity implements LoaderManager.LoaderCal
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.projectlist, menu);
         return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle item selection
+        switch (item.getItemId()) {
+            case R.id.new_project:
+                mDataWrangler.addTestProject();
+
+                // Manually tell the ProjectCursorLoader that the content changed
+                mLoader.onContentChanged();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 }

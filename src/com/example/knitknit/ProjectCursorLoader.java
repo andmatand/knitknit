@@ -6,22 +6,23 @@ import android.content.AsyncTaskLoader;
 import android.database.Cursor;
 import android.util.Log;
 
-public class SimpleCursorLoader extends AsyncTaskLoader<Cursor> {
-    private static final String TAG = "knitknit-SimpleCursorLoader";
+public class ProjectCursorLoader extends AsyncTaskLoader<Cursor> {
+    private static final String TAG = "knitknit-ProjectCursorLoader";
 
     private DataWrangler mDataWrangler;
     private Cursor mCursor;
+    private int mLastDatabaseChangeNumber;
 
-    //public SimpleCursorLoader(Context context, DataWrangler dataWrangler) {
-    //    super(context);
-
-    //    mDataWrangler = dataWrangler;//new DataWrangler(context);
-    //}
-    public SimpleCursorLoader(Context context) {
+    public ProjectCursorLoader(Context context, DataWrangler dataWrangler) {
         super(context);
 
-        mDataWrangler = new DataWrangler(context);
+        mDataWrangler = dataWrangler;
     }
+    //public ProjectCursorLoader(Context context) {
+    //    super(context);
+
+    //    mDataWrangler = new DataWrangler(context);
+    //}
 
     public Cursor loadInBackground() {
         mDataWrangler.open();
@@ -45,6 +46,9 @@ public class SimpleCursorLoader extends AsyncTaskLoader<Cursor> {
         Cursor oldCursor = mCursor;
         mCursor = cursor;
 
+        // Start monitoring for changes
+        //registerDataSetObserver();
+
         // If the Loader is currently started
         if (isStarted()) {
             // Immediately deliver the result
@@ -60,20 +64,31 @@ public class SimpleCursorLoader extends AsyncTaskLoader<Cursor> {
 
     @Override
     protected void onStartLoading() {
+        Log.w(TAG, "in onStartLoading()");
+
         // If we currently have a result available
         if (mCursor != null) {
             // Immediately deliver it
             deliverResult(mCursor);
         }
 
+        //boolean databaseChanged = !(mLastDatabaseChangeNumber == mDataWrangler.mChangeNumber);
+        //mLastDatabaseChangeNumber = mDataWrangler.mChangeNumber;
 
         // If the data has changed since the last time it was loaded, or the
         // data is not currently available
+        //if (databaseChanged || takeContentChanged() || mCursor == null) {
         if (takeContentChanged() || mCursor == null) {
             // Start a load
             forceLoad();
         } 
 
+    }
+
+    @Override
+    public void onContentChanged() {
+        Log.w(TAG, "in onContentChanged()");
+        forceLoad();
     }
 
     @Override
@@ -109,6 +124,5 @@ public class SimpleCursorLoader extends AsyncTaskLoader<Cursor> {
         if (!cursor.isClosed()) {
             cursor.close();
         }
-        mDataWrangler.close();
     }
 }
