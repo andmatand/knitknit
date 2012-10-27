@@ -2,6 +2,11 @@
 <resources>
     <string name="app_name">Knitknit</string>
 
-    <!-- ProejctList -->
+    <!-- ProjectList -->
     <string name="new_project">New project</string>
+    <string name="projectlist_namedialog_title_create">New Project</string>
+    <string name="projectlist_namedialog_title_rename">Rename Project</string>
+    <string name="projectlist_namedialog_hint">Name</string>
+    <string name="projectlist_namedialog_create">Create</string>
+    <string name="projectlist_namedialog_rename">That’s better</string>
 </resources>

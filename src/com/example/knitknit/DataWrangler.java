@@ -101,7 +101,7 @@ public class DataWrangler {
 
     // Project Methods
     public void addTestProject() {
-        insertProject("Spider Pants");
+        createProject("Spider Pants");
     }
 
     public Cursor getProjectCursor() {
@@ -111,8 +111,7 @@ public class DataWrangler {
                                null, null, null, null, null);
     }
 
-    public Project insertProject(String name) {
-        Log.w(TAG, "in insertProject()");
+    public Project createProject(String name) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); 
 
         ContentValues projectValues = new ContentValues();

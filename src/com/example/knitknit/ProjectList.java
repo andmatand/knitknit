@@ -1,14 +1,19 @@
 package com.example.knitknit;
 
+import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.app.LoaderManager;
+import android.content.DialogInterface;
 import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MenuInflater;
+import android.view.View;
+import android.widget.EditText;
 import android.widget.SimpleCursorAdapter;
 
 public class ProjectList extends ListActivity implements LoaderManager.LoaderCallbacks<Cursor> {
@@ -76,13 +81,64 @@ public class ProjectList extends ListActivity implements LoaderManager.LoaderCal
         // Handle item selection
         switch (item.getItemId()) {
             case R.id.new_project:
-                mDataWrangler.addTestProject();
+                showNameDialog(-1, null);
+                //mDataWrangler.addTestProject();
 
-                // Manually tell the ProjectCursorLoader that the content changed
-                mLoader.onContentChanged();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+
+    // @projectID
+    //	-1 we are creating a project
+    //	Otherwise we are renaming the project with this projectID
+    private void showNameDialog(final long projectID, String currentName) {
+        // Instantiate a view of projectlist_namedialog.xml
+        LayoutInflater inflater = (LayoutInflater) this.getSystemService(LAYOUT_INFLATER_SERVICE);
+        View view = inflater.inflate(R.layout.projectlist_namedialog, null, false);
+
+        // Find the name EditText field
+        final EditText nameField = (EditText) view.findViewById(R.id.projectlist_namedialog_name);
+
+        // If we are renaming, put the current name in the box
+        if (currentName != null) {
+            nameField.append(currentName);
+        }
+
+        DialogInterface.OnClickListener listener =
+            new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    if (projectID == -1) {
+                        mDataWrangler.createProject(nameField.getText().toString());
+                        // Manually tell the ProjectCursorLoader that the content changed
+                        mLoader.onContentChanged();
+                    } else {
+                        //mDatabaseHelper.updateProject(projectID, name.getText().toString(),
+                        //                              null, null, null);
+                    }
+                    return;
+                }
+            };
+
+
+        // Create an AlertDialog and set its properties
+        AlertDialog.Builder dialog = new AlertDialog.Builder(this); 
+        dialog.setCancelable(true);
+        dialog.setTitle((projectID == -1 ?
+                         R.string.projectlist_namedialog_title_create :
+                         R.string.projectlist_namedialog_title_rename));
+        dialog.setPositiveButton((projectID == -1 ?
+                                  R.string.projectlist_namedialog_create :
+                                  R.string.projectlist_namedialog_rename),
+                                 listener);
+
+        // Fill the dialog with the view
+        dialog.setView(view);
+        dialog.create();
+
+        // Show the dialog
+        dialog.show();
     }
 }
