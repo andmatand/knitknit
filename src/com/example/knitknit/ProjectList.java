@@ -5,16 +5,30 @@ import android.app.ListActivity;
 import android.app.LoaderManager;
 import android.content.DialogInterface;
 import android.content.Loader;
+import android.content.pm.ActivityInfo;
+import android.content.res.TypedArray;
 import android.database.Cursor;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.SparseBooleanArray;
+import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MenuInflater;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
+import android.widget.AbsListView.MultiChoiceModeListener;
+import android.widget.CheckedTextView;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.SimpleCursorAdapter;
+import android.widget.TextView;
 
 public class ProjectList extends ListActivity implements LoaderManager.LoaderCallbacks<Cursor> {
     private static final String TAG = "knitknit-ProjectList";
@@ -27,21 +41,139 @@ public class ProjectList extends ListActivity implements LoaderManager.LoaderCal
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT); 
+
+        // Create a wrapper layout in which to center a progress bar
+        LinearLayout progressBarWrapper = new LinearLayout(this);
+        progressBarWrapper.setGravity(Gravity.CENTER);
+
+        // Create a progress bar to display while the list loads
+        ProgressBar progressBar = new ProgressBar(this);
+        progressBar.setIndeterminate(true);
+        progressBar.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT,
+                                                     LayoutParams.WRAP_CONTENT));
+
+        // Put the progress bar in the wrapper
+        progressBarWrapper.addView(progressBar);
+
+        // Add the progress bar to the root of the layout
+        getListView().setEmptyView(progressBarWrapper);
+        ViewGroup root = (ViewGroup) findViewById(android.R.id.content);
+        root.addView(progressBarWrapper);
+
+        // Create a DataWrangler which will be used here and also passed to other classes
         mDataWrangler = new DataWrangler(this);
 
         // For the cursor adapter, specify which columns go into which views
         String[] fromColumns = {DataWrangler.PROJECT_KEY_NAME};
-        int[] toViews = {android.R.id.text1}; // The TextView in simple_list_item_1
+        int[] toViews = {R.id.projectlist_item_name}; // The TextView in projectlist_item
 
         // Create an empty adapter we will use to display the loaded data.
         // We pass null for the cursor, then update it in onLoadFinished()
-        mAdapter = new SimpleCursorAdapter(this, android.R.layout.simple_list_item_1,
+        mAdapter = new SimpleCursorAdapter(this, R.layout.projectlist_item,
                                            null, fromColumns, toViews, 0);
         setListAdapter(mAdapter);
 
         // Prepare the loader.  Either re-connect with an existing one,
         // or start a new one.
         getLoaderManager().initLoader(0, null, this);
+
+        // Enable multiple selection of list items
+        ListView listView = getListView();
+        listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
+        listView.setMultiChoiceModeListener(new MultiChoiceModeListener() {
+            @Override
+            public void onItemCheckedStateChanged(ActionMode mode, int position, long id,
+                                                  boolean checked) {
+                int numSelected = getListView().getCheckedItemCount();
+
+                mode.setTitle(numSelected + " selected");
+
+                if (numSelected > 1) {
+                    // Hide the rename button
+                }
+            }
+
+            @Override
+            public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+                long[] checkedItemIds = getListView().getCheckedItemIds();
+
+                // Respond to clicks on the actions in the CAB
+                switch (item.getItemId()) {
+                    case R.id.delete_project:
+                        for (int i = 0; i < checkedItemIds.length; i++) {
+                            // Remove the project from the database
+                            Log.w(TAG, "removing project with id " + checkedItemIds[i]);
+                            if (mDataWrangler.removeProject(checkedItemIds[i])) {
+                                Log.w(TAG, "removed successfully");
+                            }
+                            else {
+                                Log.w(TAG, "remove failed");
+                            }
+                            
+                            // Refresh the list
+                            mLoader.onContentChanged();
+                        }
+
+                        mode.finish();
+                        return true;
+                    case R.id.rename_project:
+                        SparseBooleanArray items = getListView().getCheckedItemPositions();
+                        for (int i = 0; i < items.size(); i++) {
+                            if (items.valueAt(i)) {
+                                TextView tv = (TextView) getListView().getChildAt(items.keyAt(i));
+                                showNameDialog(checkedItemIds[0], (String) tv.getText());
+                                break;
+                            }
+                        }
+
+                        mode.finish();
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+
+            @Override
+            public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+                // Inflate the menu for the CAB
+                MenuInflater inflater = mode.getMenuInflater();
+                inflater.inflate(R.menu.projectlist_context, menu);
+
+                // Give a checkmark to all the list items
+                for (int i = 0; i < getListView().getChildCount(); i++) {
+                    int[] attrs = {android.R.attr.listChoiceIndicatorMultiple};
+                    TypedArray ta = getTheme().obtainStyledAttributes(attrs);
+                    Drawable checkmark = ta.getDrawable(0);
+                    checkmark.mutate();
+
+                    TextView tv = (TextView) getListView().getChildAt(i);
+                    tv.setCompoundDrawablesWithIntrinsicBounds(null, null, checkmark, null);
+                }
+
+                return true;
+            }
+
+            @Override
+            public void onDestroyActionMode(ActionMode mode) {
+                // Remove checkmarks from all the list items
+                for (int i = 0; i < getListView().getChildCount(); i++) {
+                    TextView tv = (TextView) getListView().getChildAt(i);
+                    tv.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
+                }
+            }
+
+            @Override
+            public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+                // Here you can perform updates to the CAB due to
+                // an invalidate() request
+                return false;
+            }
+        });
+    }
+
+    @Override
+    public void onListItemClick(ListView lv, View v, int position, long id) {
     }
 
 
@@ -68,7 +200,7 @@ public class ProjectList extends ListActivity implements LoaderManager.LoaderCal
     }
 
 
-    // Options Menu
+    // Options Menu (Action Bar)
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -121,7 +253,6 @@ public class ProjectList extends ListActivity implements LoaderManager.LoaderCal
                     return;
                 }
             };
-
 
         // Create an AlertDialog and set its properties
         AlertDialog.Builder dialog = new AlertDialog.Builder(this); 

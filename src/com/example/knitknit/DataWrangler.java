@@ -100,10 +100,6 @@ public class DataWrangler {
 
 
     // Project Methods
-    public void addTestProject() {
-        createProject("Spider Pants");
-    }
-
     public Cursor getProjectCursor() {
         // Returns a Cursor over the list of all projects in the database
         return mDatabase.query(PROJECT_TABLE,
@@ -155,6 +151,49 @@ public class DataWrangler {
                           cursor.getString(cursor.getColumnIndexOrThrow(PROJECT_KEY_DATEACCESSED)));
     }
 
+    public boolean removeProject(long projectID) {
+        // Get a cursor over the list of counters in this project
+        //Cursor cursor = getCounterCursor(projectID);
+
+        // Delete each counter
+        //do {
+        //    if (!removeCounter(cursor.getLong(cursor.getColumnIndexOrThrow(COUNTER_KEY_ID)))) {
+        //        return false;
+        //    }
+        //} while (cursor.moveToNext());
+        //cursor.close();
+
+        // Delete the project
+        return mDatabase.delete(PROJECT_TABLE, PROJECT_KEY_ID + "=" + projectID, null) > 0;
+    }
+
 
     // Counter Methods
+    public Cursor getCounterCursor(long projectID) throws SQLException {
+        // Returns a Cursor over the all counters with the specified projectID
+        String[] columns = {COUNTER_KEY_ID,
+                            COUNTER_KEY_NAME,
+                            COUNTER_KEY_VALUE,
+                            COUNTER_KEY_COUNTUP,
+                            COUNTER_KEY_PATTERNENABLED,
+                            COUNTER_KEY_PATTERNLENGTH,
+                            COUNTER_KEY_NUMREPEATS};
+
+        Cursor cursor = mDatabase.query(true, COUNTER_TABLE, columns, 
+                                        COUNTER_KEY_PROJECTID + "=" + projectID,
+                                        null, null, null, null, null);
+        if (cursor != null) {
+            cursor.moveToFirst();
+        }
+
+        if (cursor.getCount() == 0) {
+            Log.w(TAG, "counterCursor was empty");
+        }
+
+        return cursor;
+    }
+
+    public boolean removeCounter(long counterID) {
+        return mDatabase.delete(COUNTER_TABLE, COUNTER_KEY_ID + "=" + counterID, null) > 0;
+    }
 }
