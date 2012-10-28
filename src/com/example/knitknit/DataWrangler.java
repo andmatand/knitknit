@@ -16,7 +16,7 @@ public class DataWrangler {
 
     // Database Constants
     private static final String DATABASE_NAME = "knitknit.db";
-    private static final int DATABASE_VERSION = 5;
+    private static final int DATABASE_VERSION = 6;
 
     private static final String PROJECT_TABLE = "project";
     private static final String PROJECT_KEY_ID = "_id";
@@ -107,36 +107,38 @@ public class DataWrangler {
                                null, null, null, null, null);
     }
 
-    public Project createProject(String name) {
+    public boolean createProject(String name) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); 
 
         ContentValues projectValues = new ContentValues();
         projectValues.put(PROJECT_KEY_NAME, name);
         projectValues.put(PROJECT_KEY_DATECREATED, dateFormat.format(new Date()));
 
-        long projectID = mDatabase.insert(PROJECT_TABLE, null, projectValues);
+        long projectId = mDatabase.insert(PROJECT_TABLE, null, projectValues);
         mChangeNumber += 1;
 
-        // Exit if there was a database error
-        if (projectID == -1) {
-            return null;
+        // If there was a database error
+        if (projectId == -1) {
+            return false;
         } else {
             // Add one counter to the project to begin with
-            //Log.w(TAG, "insertCounter returned:" + insertCounter(projectID));
-            //insertCounter(projectID);
-
-            return getProject(projectID);
+            if (createCounter(projectId)) {
+                return true;
+            }
+            else {
+                return false;
+            }
         }
     }
 
-    public Project getProject(long projectID) throws SQLException {
+    public Project retrieveProject(long projectId) throws SQLException {
         String[] columns = {PROJECT_KEY_ID,
                             PROJECT_KEY_NAME,
                             PROJECT_KEY_TOTALROWS,
                             PROJECT_KEY_DATECREATED,
                             PROJECT_KEY_DATEACCESSED};
 
-        String where = PROJECT_KEY_ID + "=" + projectID;
+        String where = PROJECT_KEY_ID + "=" + projectId;
 
         Cursor cursor = mDatabase.query(true, PROJECT_TABLE, columns, where,
                                         null, null, null, null, null);
@@ -151,26 +153,39 @@ public class DataWrangler {
                           cursor.getString(cursor.getColumnIndexOrThrow(PROJECT_KEY_DATEACCESSED)));
     }
 
-    public boolean removeProject(long projectID) {
+    public boolean updateProject(long projectId, String name, Long totalRows, String dateCreated,
+                                 String dateAccessed) {
+        ContentValues values = new ContentValues();
+        if (name != null) values.put(PROJECT_KEY_NAME, name);
+        if (totalRows != null) values.put(PROJECT_KEY_TOTALROWS, (long) totalRows);
+        if (dateCreated != null) values.put(PROJECT_KEY_DATECREATED, dateCreated);
+        if (dateAccessed != null) values.put(PROJECT_KEY_DATEACCESSED, dateAccessed);
+
+        return mDatabase.update(PROJECT_TABLE, values, PROJECT_KEY_ID + "=" + projectId, null) > 0;
+    }
+
+    public boolean deleteProject(long projectId) {
         // Get a cursor over the list of counters in this project
-        //Cursor cursor = getCounterCursor(projectID);
+        Cursor cursor = getCounterCursor(projectId);
 
         // Delete each counter
-        //do {
-        //    if (!removeCounter(cursor.getLong(cursor.getColumnIndexOrThrow(COUNTER_KEY_ID)))) {
-        //        return false;
-        //    }
-        //} while (cursor.moveToNext());
-        //cursor.close();
+        if (cursor != null) {
+            do {
+                if (!deleteCounter(cursor.getLong(cursor.getColumnIndexOrThrow(COUNTER_KEY_ID)))) {
+                    return false;
+                }
+            } while (cursor.moveToNext());
+            cursor.close();
+        }
 
         // Delete the project
-        return mDatabase.delete(PROJECT_TABLE, PROJECT_KEY_ID + "=" + projectID, null) > 0;
+        return mDatabase.delete(PROJECT_TABLE, PROJECT_KEY_ID + "=" + projectId, null) > 0;
     }
 
 
     // Counter Methods
-    public Cursor getCounterCursor(long projectID) throws SQLException {
-        // Returns a Cursor over the all counters with the specified projectID
+    public Cursor getCounterCursor(long projectId) throws SQLException {
+        // Returns a Cursor over the all counters with the specified projectId
         String[] columns = {COUNTER_KEY_ID,
                             COUNTER_KEY_NAME,
                             COUNTER_KEY_VALUE,
@@ -180,7 +195,7 @@ public class DataWrangler {
                             COUNTER_KEY_NUMREPEATS};
 
         Cursor cursor = mDatabase.query(true, COUNTER_TABLE, columns, 
-                                        COUNTER_KEY_PROJECTID + "=" + projectID,
+                                        COUNTER_KEY_PROJECTID + "=" + projectId,
                                         null, null, null, null, null);
         if (cursor != null) {
             cursor.moveToFirst();
@@ -193,7 +208,19 @@ public class DataWrangler {
         return cursor;
     }
 
-    public boolean removeCounter(long counterID) {
+    public boolean createCounter(long projectId) throws SQLException {
+        ContentValues counterValues = new ContentValues();
+        counterValues.put(COUNTER_KEY_PROJECTID, projectId);
+
+        if (mDatabase.insert(COUNTER_TABLE, null, counterValues) == -1) {
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
+
+    public boolean deleteCounter(long counterID) {
         return mDatabase.delete(COUNTER_TABLE, COUNTER_KEY_ID + "=" + counterID, null) > 0;
     }
 }

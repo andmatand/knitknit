@@ -102,13 +102,13 @@ public class ProjectList extends ListActivity implements LoaderManager.LoaderCal
                 switch (item.getItemId()) {
                     case R.id.delete_project:
                         for (int i = 0; i < checkedItemIds.length; i++) {
-                            // Remove the project from the database
-                            Log.w(TAG, "removing project with id " + checkedItemIds[i]);
-                            if (mDataWrangler.removeProject(checkedItemIds[i])) {
-                                Log.w(TAG, "removed successfully");
+                            // Delete the project from the database
+                            Log.w(TAG, "deleting project with id " + checkedItemIds[i]);
+                            if (mDataWrangler.deleteProject(checkedItemIds[i])) {
+                                Log.w(TAG, "deleted successfully");
                             }
                             else {
-                                Log.w(TAG, "remove failed");
+                                Log.w(TAG, "delete failed");
                             }
                             
                             // Refresh the list
@@ -226,7 +226,7 @@ public class ProjectList extends ListActivity implements LoaderManager.LoaderCal
     // @projectID
     //	-1 we are creating a project
     //	Otherwise we are renaming the project with this projectID
-    private void showNameDialog(final long projectID, String currentName) {
+    private void showNameDialog(final long projectId, String currentName) {
         // Instantiate a view of projectlist_namedialog.xml
         LayoutInflater inflater = (LayoutInflater) this.getSystemService(LAYOUT_INFLATER_SERVICE);
         View view = inflater.inflate(R.layout.projectlist_namedialog, null, false);
@@ -242,14 +242,15 @@ public class ProjectList extends ListActivity implements LoaderManager.LoaderCal
         DialogInterface.OnClickListener listener =
             new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int which) {
-                    if (projectID == -1) {
+                    if (projectId == -1) {
                         mDataWrangler.createProject(nameField.getText().toString());
-                        // Manually tell the ProjectCursorLoader that the content changed
-                        mLoader.onContentChanged();
                     } else {
-                        //mDatabaseHelper.updateProject(projectID, name.getText().toString(),
-                        //                              null, null, null);
+                        mDataWrangler.updateProject(projectId, nameField.getText().toString(),
+                                                    null, null, null);
                     }
+
+                    // Manually tell the ProjectCursorLoader that the content changed
+                    mLoader.onContentChanged();
                     return;
                 }
             };
@@ -257,10 +258,10 @@ public class ProjectList extends ListActivity implements LoaderManager.LoaderCal
         // Create an AlertDialog and set its properties
         AlertDialog.Builder dialog = new AlertDialog.Builder(this); 
         dialog.setCancelable(true);
-        dialog.setTitle((projectID == -1 ?
+        dialog.setTitle((projectId == -1 ?
                          R.string.projectlist_namedialog_title_create :
                          R.string.projectlist_namedialog_title_rename));
-        dialog.setPositiveButton((projectID == -1 ?
+        dialog.setPositiveButton((projectId == -1 ?
                                   R.string.projectlist_namedialog_create :
                                   R.string.projectlist_namedialog_rename),
                                  listener);
