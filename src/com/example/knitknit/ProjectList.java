@@ -89,8 +89,15 @@ public class ProjectList extends ListActivity implements LoaderManager.LoaderCal
 
                 mode.setTitle(numSelected + " selected");
 
+                MenuItem renameItem = mode.getMenu().findItem(R.id.rename_project);
+                // If there is more than one list item selected
                 if (numSelected > 1) {
                     // Hide the rename button
+                    renameItem.setVisible(false);
+                }
+                else {
+                    // Show the rename button
+                    renameItem.setVisible(true);
                 }
             }
 
@@ -151,6 +158,15 @@ public class ProjectList extends ListActivity implements LoaderManager.LoaderCal
                     tv.setCompoundDrawablesWithIntrinsicBounds(null, null, checkmark, null);
                 }
 
+                // Use the checked layout for future drawing
+                //getListView().invalidate();
+                //getListView().invalidateViews();
+                //mLoader.onContentChanged();
+
+                // Reset the adapter with a different view (loses scroll position)
+                //mAdapter.setViewResource(R.layout.projectlist_item_checked);
+                //setListAdapter(mAdapter);
+
                 return true;
             }
 
@@ -161,6 +177,13 @@ public class ProjectList extends ListActivity implements LoaderManager.LoaderCal
                     TextView tv = (TextView) getListView().getChildAt(i);
                     tv.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
                 }
+
+                // Use the unchecked layout for future drawing
+                //mAdapter.setViewResource(R.layout.projectlist_item);
+
+                // Reset the adapter with a different view (loses scroll position)
+                //mAdapter.setViewResource(R.layout.projectlist_item);
+                //setListAdapter(mAdapter);
             }
 
             @Override
