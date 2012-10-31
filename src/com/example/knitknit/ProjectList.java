@@ -36,16 +36,18 @@ public class ProjectList extends ListActivity implements LoaderManager.LoaderCal
     public DataWrangler mDataWrangler;
     private SimpleCursorAdapter mAdapter;
     private ProjectCursorLoader mLoader;
+    private LinearLayout mProgressBarWrapper;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        setContentView(R.layout.projectlist);
         setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT); 
 
         // Create a wrapper layout in which to center a progress bar
-        LinearLayout progressBarWrapper = new LinearLayout(this);
-        progressBarWrapper.setGravity(Gravity.CENTER);
+        mProgressBarWrapper = new LinearLayout(this);
+        mProgressBarWrapper.setGravity(Gravity.CENTER);
 
         // Create a progress bar to display while the list loads
         ProgressBar progressBar = new ProgressBar(this);
@@ -54,12 +56,11 @@ public class ProjectList extends ListActivity implements LoaderManager.LoaderCal
                                                      LayoutParams.WRAP_CONTENT));
 
         // Put the progress bar in the wrapper
-        progressBarWrapper.addView(progressBar);
+        mProgressBarWrapper.addView(progressBar);
 
         // Add the progress bar to the root of the layout
-        getListView().setEmptyView(progressBarWrapper);
         ViewGroup root = (ViewGroup) findViewById(android.R.id.content);
-        root.addView(progressBarWrapper);
+        root.addView(mProgressBarWrapper);
 
         // Create a DataWrangler which will be used here and also passed to other classes
         mDataWrangler = new DataWrangler(this);
@@ -195,6 +196,20 @@ public class ProjectList extends ListActivity implements LoaderManager.LoaderCal
         });
     }
 
+    //@Override
+    //public void onPause() {
+    //    super.onPause();
+    //}
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if (mLoader != null) {
+            mLoader.forceLoad();
+        }
+    }
+
     @Override
     public void onListItemClick(ListView lv, View v, int position, long id) {
     }
@@ -213,6 +228,13 @@ public class ProjectList extends ListActivity implements LoaderManager.LoaderCal
         // Swap the new cursor in.  (The framework will take care of closing the
         // old cursor once we return.)
         mAdapter.swapCursor(data);
+
+        // Remove the progress bar
+        ViewGroup root = (ViewGroup) findViewById(android.R.id.content);
+        root.removeView(mProgressBarWrapper);
+
+        // Put text in the view that is displayed when the list is empty
+        ((TextView) getListView().getEmptyView()).setText(R.string.projectlist_empty);
     }
 
     public void onLoaderReset(Loader<Cursor> loader) {

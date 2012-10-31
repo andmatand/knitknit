@@ -121,7 +121,7 @@ public class ProjectCursorLoader extends AsyncTaskLoader<Cursor> {
     protected void onReleaseResources(Cursor cursor) {
         Log.w(TAG, "in onReleaseResources()");
 
-        if (!cursor.isClosed()) {
+        if (cursor != null && !cursor.isClosed()) {
             cursor.close();
         }
     }

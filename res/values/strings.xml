@@ -6,6 +6,7 @@
     <string name="new_project">New project</string>
     <string name="rename_project">Rename</string>
     <string name="delete_project">Delete</string>
+    <string name="projectlist_empty">There are no projects yet!</string>
     <string name="projectlist_namedialog_title_create">New Project</string>
     <string name="projectlist_namedialog_title_rename">Rename Project</string>
     <string name="projectlist_namedialog_hint">Name</string>
