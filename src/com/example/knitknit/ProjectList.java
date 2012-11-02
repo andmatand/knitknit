@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.app.LoaderManager;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.Loader;
 import android.content.pm.ActivityInfo;
 import android.content.res.TypedArray;
@@ -33,7 +34,7 @@ import android.widget.TextView;
 public class ProjectList extends ListActivity implements LoaderManager.LoaderCallbacks<Cursor> {
     private static final String TAG = "knitknit-ProjectList";
 
-    public DataWrangler mDataWrangler;
+    private DataWrangler mDataWrangler;
     private SimpleCursorAdapter mAdapter;
     private ProjectCursorLoader mLoader;
     private LinearLayout mProgressBarWrapper;
@@ -212,6 +213,15 @@ public class ProjectList extends ListActivity implements LoaderManager.LoaderCal
 
     @Override
     public void onListItemClick(ListView lv, View v, int position, long id) {
+        super.onListItemClick(lv, v, position, id);
+
+        //intent.putExtra(DataWrangler.PROJECT_KEY_ID, id);
+        //startActivityForResult(intent, ACTIVITY_VIEW);
+
+        Intent intent = new Intent(this, CountingLand.class);
+        //intent.putExtra("com.example.knitknit.projectId", id);
+        intent.putExtra(DataWrangler.PROJECT_KEY_ID, id);
+        startActivity(intent);
     }
 
 
