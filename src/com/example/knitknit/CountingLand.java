@@ -89,7 +89,8 @@ public class CountingLand extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
-        mProject.save();
+
+        mDataWrangler.saveProject(mProject);
     }
 
     @Override

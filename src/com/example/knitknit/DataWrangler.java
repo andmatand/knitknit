@@ -11,6 +11,7 @@ import android.util.Log;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 
 public class DataWrangler {
     private static final String TAG = "knitknit-DataWrangler";
@@ -207,6 +208,19 @@ public class DataWrangler {
         return mDatabase.delete(PROJECT_TABLE, PROJECT_KEY_ID + "=" + projectId, null) > 0;
     }
 
+    public void saveProject(Project project) {
+        updateProject(project.getId(), project.getName(), project.getTotalRows(),
+                      project.getDateCreated(), project.getDateOpened());
+
+        for (Iterator it = project.getCounters().iterator(); it.hasNext(); ) {
+            Counter counter = (Counter) it.next();
+
+            updateCounter(counter.getId(), counter.getName(), counter.getValue(),
+                          counter.getCountUp(), counter.getPatternEnabled(),
+                          counter.getPatternLength(), counter.getNumRepeats());
+        }
+    }
+
 
     // Counter Methods
     public Cursor getCounterCursor(long projectId) throws SQLException {
@@ -273,7 +287,20 @@ public class DataWrangler {
         return counter;
     }
 
-    public boolean deleteCounter(long counterID) {
-        return mDatabase.delete(COUNTER_TABLE, COUNTER_KEY_ID + "=" + counterID, null) > 0;
+    public boolean updateCounter(long counterId, String name, long value, boolean countUp,
+                                 boolean patternEnabled, long patternLength, long numRepeats) {
+        ContentValues values = new ContentValues();
+        values.put(COUNTER_KEY_NAME, name);
+        values.put(COUNTER_KEY_VALUE, value);
+        values.put(COUNTER_KEY_COUNTUP, countUp);
+        values.put(COUNTER_KEY_PATTERNENABLED, patternEnabled);
+        values.put(COUNTER_KEY_PATTERNLENGTH, patternLength);
+        values.put(COUNTER_KEY_NUMREPEATS, numRepeats);
+
+        return mDatabase.update(COUNTER_TABLE, values, COUNTER_KEY_ID + "=" + counterId, null) > 0;
+    }
+
+    public boolean deleteCounter(long counterId) {
+        return mDatabase.delete(COUNTER_TABLE, COUNTER_KEY_ID + "=" + counterId, null) > 0;
     }
 }

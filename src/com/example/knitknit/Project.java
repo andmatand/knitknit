@@ -124,12 +124,24 @@ public class Project {
         return mCounters;
     }
 
+    public String getDateCreated() {
+        return mDateCreated;
+    }
+
+    public String getDateOpened() {
+        return mDateOpened;
+    }
+
     public long getId() {
         return mId;
     }
 
     public String getName() {
         return mName;
+    }
+
+    public long getTotalRows() {
+        return mTotalRows;
     }
 
     public ProjectWrapper getWrapper() {
@@ -176,9 +188,6 @@ public class Project {
 
             counter.refreshViews();
         }
-    }
-
-    public void save() {
     }
 
     private void sizeCounters() {

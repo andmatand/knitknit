@@ -126,8 +126,32 @@ public class Counter {
         return width;
     }
 
+    public boolean getCountUp() {
+        return mCountUp;
+    }
+
     private long getDisplayValue() {
         return (CountingLand.getZeroMode() ? mValue : mValue + 1);
+    }
+
+    public long getId() {
+        return mId;
+    }
+
+    public String getName() {
+        return mName;
+    }
+
+    public long getNumRepeats() {
+        return mNumRepeats;
+    }
+
+    public boolean getPatternEnabled() {
+        return mPatternEnabled;
+    }
+
+    public long getPatternLength() {
+        return mPatternLength;
     }
 
     public long getValue() {
