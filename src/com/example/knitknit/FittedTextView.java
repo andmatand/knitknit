@@ -34,9 +34,11 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
 import android.widget.TextView;
+import java.util.HashMap;
 
 public class FittedTextView extends TextView {
     private static final String TAG = "knitknit-FittedTextView";
+    private static HashMap<Integer, HashMap<Integer, Float>> sizeCache;
 
     private float maxTextSizePx;
 
@@ -57,6 +59,8 @@ public class FittedTextView extends TextView {
 
     private void init() {
         maxTextSizePx = getTextSize(); 
+
+        sizeCache = new HashMap<Integer, HashMap<Integer, Float>>();
     }
 
     @Override
@@ -78,8 +82,24 @@ public class FittedTextView extends TextView {
         }
     }
 
-    private void refitText(String text, int w, int h) {
+    private void refitText(String text, int width, int height) {
         Log.w(TAG, "in refitText()");
+
+        if (text.length() == 0) return;
+
+        if (sizeCache.containsKey(text.length())) {
+            Float cachedSize = sizeCache.get(text.length()).get(height);
+
+            if (cachedSize != null) {
+                Log.w(TAG, "used a cached size: " + cachedSize);
+                setTextSize(TypedValue.COMPLEX_UNIT_PX, (float) cachedSize);
+                return;
+            }
+        }
+
+        // Make copies of the width and height
+        int w = width;
+        int h = height;
 
         Log.w(TAG, "padding left: " + getPaddingLeft());
         w = w - getPaddingLeft() - getPaddingRight();
@@ -108,8 +128,8 @@ public class FittedTextView extends TextView {
             loops++;
 
             textPaintClone.getTextBounds(testString, 0, testString.length(), testBounds);
-            Log.w(TAG, "test width: " + testBounds.width());
-            Log.w(TAG, "test height: " + testBounds.height());
+            //Log.w(TAG, "test width: " + testBounds.width());
+            //Log.w(TAG, "test height: " + testBounds.height());
 
             if (testBounds.width() > w || testBounds.height() > h) {
                 testSize -= 1;
@@ -123,5 +143,31 @@ public class FittedTextView extends TextView {
         Log.w(TAG, "loops: " + loops);
 
         setTextSize(TypedValue.COMPLEX_UNIT_PX, testSize);
+
+        // Cache this size for future use, keying by text length and height
+        addToSizeCache((Integer) text.length(), (Integer) height, (Float) testSize);
+    }
+
+    private void addToSizeCache(Integer textLength, Integer height, Float textSize) {
+        if (sizeCache.containsKey(textLength)) {
+            Log.w(TAG, "appending to sizeCache: {" + textLength + ", {" +
+                       height + ", " + textSize + "}}");
+
+            // Add to the existing HashMap for this size
+            sizeCache.get(textLength).put(height, textSize);
+        }
+        else {
+            Log.w(TAG, "adding new HashMap to sizeCache: {" + textLength + ", {" +
+                       height + ", " + textSize + "}}");
+
+            // Create a new HashMap for this size
+            HashMap<Integer, Float> newMap =  new HashMap<Integer, Float>();
+
+            // Add the current values to the new HashMap
+            newMap.put(height, textSize);
+
+            // Add the new HashMap to the cache
+            sizeCache.put(textLength, newMap);
+        }
     }
 }
