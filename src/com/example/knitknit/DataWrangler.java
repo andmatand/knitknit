@@ -110,13 +110,19 @@ public class DataWrangler {
                                null, null, null, null, PROJECT_KEY_DATEOPENED + " desc");
     }
 
-    public boolean createProject(String name) {
+    private String getDate() {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); 
+
+        return dateFormat.format(new Date());
+    }
+
+    public boolean createProject(String name) {
+        String currentDate = getDate();
 
         ContentValues projectValues = new ContentValues();
         projectValues.put(PROJECT_KEY_NAME, name);
-        projectValues.put(PROJECT_KEY_DATECREATED, dateFormat.format(new Date()));
-        projectValues.put(PROJECT_KEY_DATEOPENED, dateFormat.format(new Date()));
+        projectValues.put(PROJECT_KEY_DATECREATED, currentDate);
+        projectValues.put(PROJECT_KEY_DATEOPENED, currentDate);
 
         long projectId = mDatabase.insert(PROJECT_TABLE, null, projectValues);
 
@@ -219,6 +225,15 @@ public class DataWrangler {
                           counter.getCountUp(), counter.getPatternEnabled(),
                           counter.getPatternLength(), counter.getNumRepeats());
         }
+    }
+
+    public void touchProject(Project project) {
+        project.setDateOpened(getDate());
+
+        // Set the dateOpened on the project to the current time
+        boolean result = updateProject(project.getId(), null, null, null, project.getDateOpened());
+
+        Log.w(TAG, "touchProject result: " + result);
     }
 
 

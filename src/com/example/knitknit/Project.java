@@ -190,6 +190,10 @@ public class Project {
         }
     }
 
+    public void setDateOpened(String dateOpened) {
+        mDateOpened = dateOpened;
+    }
+
     private void sizeCounters() {
         // Set the maximum height of the counters based on the available height
         // divided by the number of counters

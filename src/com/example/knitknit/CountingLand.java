@@ -74,6 +74,9 @@ public class CountingLand extends Activity {
         mDataWrangler.open();
         mProject = mDataWrangler.retrieveProject(projectID);
 
+        // Update the dateOpened on the project
+        mDataWrangler.touchProject(mProject);
+
         // DEBUG
         Log.w(TAG, "this project has " + mProject.getCounters().size() + " counters");
 
