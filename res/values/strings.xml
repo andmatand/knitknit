@@ -12,4 +12,7 @@
     <string name="projectlist_namedialog_hint">Name</string>
     <string name="projectlist_namedialog_create">Create</string>
     <string name="projectlist_namedialog_rename">That’s better</string>
+
+    <!-- CountingLand -->
+    <string name="new_counter">New counter</string>
 </resources>

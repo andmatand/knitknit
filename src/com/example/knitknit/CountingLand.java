@@ -31,7 +31,10 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MenuInflater;
+import android.view.ViewGroup;
 
 public class CountingLand extends Activity {
     private static final String TAG = "knitknit-CountingLand";
@@ -71,10 +74,40 @@ public class CountingLand extends Activity {
         mDataWrangler.open();
         mProject = mDataWrangler.retrieveProject(projectID);
 
+        // DEBUG
+        Log.w(TAG, "this project has " + mProject.getCounters().size() + " counters");
+
         // Set the action bar title to the name of the project
         getActionBar().setTitle(mProject.getName());
 
-        Log.w(TAG, "this project has " + mProject.getCounters().size() + " counters");
+        // Attach the project's view to our view
+        ViewGroup root = (ViewGroup) findViewById(android.R.id.content);
+        root.addView(mProject.getWrapper());
+    }
+
+    // Lifecycle Management Methods
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mProject.save();
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        Log.w(TAG, "in onWindowFocusChanged()");
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) {
+            mProject.refreshViews();
+        }
+    }
+
+
+    // Options Menu (Action Bar) Methods
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.countingland, menu);
+        return true;
     }
 
     @Override
@@ -86,8 +119,27 @@ public class CountingLand extends Activity {
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(intent);
                 return true;
+            case R.id.new_counter:
+                // Add a new counter to the database
+                long id = mDataWrangler.createCounter(mProject.getId());
+
+                // Retrieve a counter object for the new counter
+                Counter counter = mDataWrangler.retrieveCounter(id);
+
+                // Add the counter object to the project
+                mProject.addCounter(counter);
+                return true;
             default:
                 return false;
         }
+    }
+
+
+    // Other Methods
+    public Project getProject() {
+        return mProject;
+    }
+    public static boolean getZeroMode() {
+        return false;
     }
 }

@@ -37,7 +37,7 @@ public class DataWrangler {
     private static final String COUNTER_KEY_NUMREPEATS = "numRepeats";
 
     // Member Variables
-    public int mChangeNumber;
+    private Context mContext;
     private DatabaseHelper mOpenHelper;
     private SQLiteDatabase mDatabase;
 
@@ -85,6 +85,7 @@ public class DataWrangler {
     // Core DataWrangler Methods
     public DataWrangler(Context context) {
         mOpenHelper = new DatabaseHelper(context);
+        mContext = context;
     }
 
     public DataWrangler open() throws SQLException {
@@ -117,14 +118,13 @@ public class DataWrangler {
         projectValues.put(PROJECT_KEY_DATEOPENED, dateFormat.format(new Date()));
 
         long projectId = mDatabase.insert(PROJECT_TABLE, null, projectValues);
-        mChangeNumber += 1;
 
         // If there was a database error
         if (projectId == -1) {
             return false;
         } else {
             // Add one counter to the project to begin with
-            if (createCounter(projectId)) {
+            if (createCounter(projectId) != -1) {
                 return true;
             }
             else {
@@ -168,7 +168,8 @@ public class DataWrangler {
             projectCursor.getLong(projectCursor.getColumnIndex(PROJECT_KEY_TOTALROWS)),
             projectCursor.getString(projectCursor.getColumnIndex(PROJECT_KEY_DATECREATED)),
             projectCursor.getString(projectCursor.getColumnIndex(PROJECT_KEY_DATEOPENED)),
-            counters);
+            counters,
+            mContext);
         
         // Close the cursors
         counterCursor.close();
@@ -232,16 +233,11 @@ public class DataWrangler {
         return cursor;
     }
 
-    public boolean createCounter(long projectId) throws SQLException {
+    public long createCounter(long projectId) throws SQLException {
         ContentValues counterValues = new ContentValues();
         counterValues.put(COUNTER_KEY_PROJECTID, projectId);
 
-        if (mDatabase.insert(COUNTER_TABLE, null, counterValues) == -1) {
-            return false;
-        }
-        else {
-            return true;
-        }
+        return mDatabase.insert(COUNTER_TABLE, null, counterValues);
     }
 
     public Counter retrieveCounter(long counterId) throws SQLException {
@@ -271,7 +267,8 @@ public class DataWrangler {
                               cursor.getInt(cursor.getColumnIndex(COUNTER_KEY_COUNTUP)) > 0,
                               cursor.getInt(cursor.getColumnIndex(COUNTER_KEY_PATTERNENABLED)) > 0,
                               cursor.getLong(cursor.getColumnIndex(COUNTER_KEY_PATTERNLENGTH)),
-                              cursor.getLong(cursor.getColumnIndex(COUNTER_KEY_NUMREPEATS)));
+                              cursor.getLong(cursor.getColumnIndex(COUNTER_KEY_NUMREPEATS)),
+                              mContext);
 
         return counter;
     }
