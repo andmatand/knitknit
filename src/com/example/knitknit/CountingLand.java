@@ -88,6 +88,7 @@ public class CountingLand extends Activity {
         root.addView(mProject.getWrapper());
     }
 
+
     // Lifecycle Management Methods
     @Override
     protected void onPause() {

@@ -33,10 +33,11 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnLongClickListener;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-public class Counter {
+public class Counter implements OnLongClickListener {
     private static final String TAG = "knitknit-Counter";
 
     // Database Fields
@@ -58,6 +59,7 @@ public class Counter {
     private boolean mPressed = false;
     private Resources mResources;
 
+    // Methods
     public Counter(long id, long projectId, String name, long value, boolean countUp,
                    boolean patternEnabled, long patternLength, long numRepeats, Context context) {
         mId = id;
@@ -78,6 +80,8 @@ public class Counter {
 
         // Get the resources (for setting text colors)
         mResources = context.getResources();
+
+        mWrapper.setOnLongClickListener(this);
     }
 
     private void addToValue(int amount) {
@@ -195,18 +199,6 @@ public class Counter {
         refreshViews();
     }
 
-    public void longClick() {
-        // Use the post method so it runs in the main UI thread intead
-        // of the timer thread
-        mWrapper.post(new Runnable() {
-            public void run() {
-                mWrapper.performLongClick();
-            }
-        });
-
-        mPressed = false;
-    }
-
     public void refreshViews() {
         // Use the post method so it runs in the main UI thread intead
         // of the timer thread
@@ -231,8 +223,12 @@ public class Counter {
         });
     }
 
-    //public void setSize(float size) {
-    //    mValueView.setTextSize(size);
-    //    mRepeatsView.setTextSize((float) (size * .35));
-    //}
+
+    // OnLongClickListener Callbacks
+    public boolean onLongClick(View v) {
+        highlight();
+        ((ProjectWrapper) v.getParent().getParent()).setDoneWithTouch(true);
+
+        return true;
+    }
 }

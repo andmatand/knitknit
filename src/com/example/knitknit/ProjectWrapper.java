@@ -33,18 +33,12 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.RelativeLayout;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class ProjectWrapper extends RelativeLayout {
-    private static final String TAG = "knitknit-CountingLandWrapper";
+    private static final String TAG = "knitknit-ProjectWrapper";
 
-    //private Context mContext;
+    private boolean mDoneWithTouch;
     private Project mProject;
-    protected MotionEvent mTouchDown = null;
-    protected MotionEvent mTouchUp = null;
-    private Timer mTouchTimer;
-    private boolean mCounterIsHighlighted = false;
 
     public ProjectWrapper(Context context) {
         super(context);
@@ -60,87 +54,36 @@ public class ProjectWrapper extends RelativeLayout {
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent event) {
-        switch(event.getAction()) {
+        Log.w(TAG, "pointer count: " + event.getPointerCount() +
+                   ", event action: " + event.getActionMasked());
+
+        switch(event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
-                Log.w(TAG, "intercepted down event");
-                mTouchDown = MotionEvent.obtain(event);
-                Log.w(TAG, "Touch y: " + mTouchDown.getY());
-                Log.w(TAG, "Raw y: " + mTouchDown.getRawY());
-                mCounterIsHighlighted = false;
+                mDoneWithTouch = false;
+                break;
+            case MotionEvent.ACTION_POINTER_UP:
+                if (!mDoneWithTouch) {
+                    if (event.getPointerCount() == 2) {
+                        mProject.decrease();
 
-                // Set a timer callback to check if the touch is still being
-                // held down
-                mTouchTimer = new Timer();
-                mTouchTimer.scheduleAtFixedRate(
-                        new TimerTask() {
-                            public void run() {
-                                checkTouch();
-                            }
-                        }, 250, 250);
-
-                // Intercept the event
-                return true;
+                        // Ignore the touch event that will occur when the other finger comes up
+                        mDoneWithTouch = true;
+                    }
+                }
+                break;
+            case MotionEvent.ACTION_UP:
+                if (!mDoneWithTouch) {
+                    mProject.increase();
+                }
+                break;
         }
 
         // Otherwise let the event pass through to the children
         return false;
     }
 
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        // Exit if we haven't had a touch down event from onInterceptTouchEvent
-        if (mTouchDown == null) return true;
-
-        Log.w(TAG, "in onTouchEvent");
-
-        switch(event.getAction()) {
-            case MotionEvent.ACTION_UP:
-                Log.w(TAG, "got up event");
-
-                // If a counter is not currently highlighted
-                if (!mCounterIsHighlighted) {
-                    // Increase all counters
-                    mProject.increase();
-                } else {
-                    // Redraw all counters
-                    //mProject.refreshCounters();
-                }
-
-                // Reset the touchDown event
-                mTouchDown = null;
-
-                // Cancel the timer
-                mTouchTimer.cancel();
-
-                return false;
-        }
-
-        return true;
-    }
-
-    public void checkTouch() {
-        Log.w(TAG, "in checkTouch()");
-        if (mTouchDown != null) {
-            Log.w(TAG, "pushing counter...");
-
-            if (mCounterIsHighlighted == false) {
-                mProject.highlightCounter(mTouchDown.getRawY());
-                mCounterIsHighlighted = true;
-            } else {
-                mProject.longClickCounter(mTouchDown.getRawY());
-                mTouchDown = null;
-
-                Log.w(TAG, "canceling timer");
-                mTouchTimer.cancel();
-            }
-        } else {
-            // The touch is no longer being held down; stop the timer
-            Log.w(TAG, "canceling timer");
-            mTouchTimer.cancel();
-
-            // Un-highlight all counters
-            //mProject.refreshCounters();
-        }
+    public void setDoneWithTouch(boolean tf) {
+        mDoneWithTouch = tf;
     }
 
     public void setProject(Project project) {

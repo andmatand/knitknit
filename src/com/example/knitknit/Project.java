@@ -98,30 +98,23 @@ public class Project {
         }
     }
 
-    private Counter findCounterByYPosition(float y) {
-        // Loop through each counter
+    public void decrease() {
+        // Subtracts (or adds, depending on counter setting) from all counters
         for (Iterator it = mCounters.iterator(); it.hasNext(); ) {
             Counter counter = (Counter) it.next();
-
-            // Get the counter's y position
-            int couterY = counter.getY();
-
-            // If y overlaps with this counter
-            if (y >= (float) counter.getY() &&
-                y <= (float) counter.getY() + (counter.getHeight() - 1)) {
-                Log.w(TAG, "Counter value: " + counter.getValue());
-                Log.w(TAG, "Counter y1: " + counter.getY());
-                Log.w(TAG, "Counter y2: " + (counter.getY() + counter.getHeight()));
-                Log.w(TAG, "Touch y: " + y);
-                return counter;
-            }
+            counter.decrease();
         }
 
-        return null;
+        mTotalRows--;
+        refreshTotal();
     }
 
     public ArrayList<Counter> getCounters() {
         return mCounters;
+    }
+
+    public LinearLayout getCounterWrapper() {
+        return mCounterWrapper;
     }
 
     public String getDateCreated() {
@@ -148,12 +141,6 @@ public class Project {
         return mWrapper;
     }
 
-    public void highlightCounter(float y) {
-        Counter counter = findCounterByYPosition(y);
-
-        if (counter != null) counter.highlight();
-    }
-
     public void increase() {
         // Adds (or subtracts, depending on counter setting) to all counters
         for (Iterator it = mCounters.iterator(); it.hasNext(); ) {
@@ -163,15 +150,6 @@ public class Project {
 
         mTotalRows++;
         refreshTotal();
-    }
-
-    public void longClickCounter(float y) {
-        Counter counter = findCounterByYPosition(y);
-
-        if (counter != null) {
-            mSelectedCounter = counter;
-            counter.longClick();
-        }
     }
 
     private void refreshTotal() {
