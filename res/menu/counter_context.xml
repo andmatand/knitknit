@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/decrease_counter"
+          android:icon="@drawable/ic_decrease"
+          android:title="@string/decrease_counter"
+          android:showAsAction="ifRoom" />
+
+    <item android:id="@+id/increase_counter"
+          android:icon="@drawable/ic_increase"
+          android:title="@string/increase_counter"
+          android:showAsAction="ifRoom" />
+
+    <item android:id="@+id/edit_counter"
+          android:icon="@drawable/ic_edit"
+          android:title="@string/edit_counter"
+          android:showAsAction="ifRoom" />
+
+    <item android:id="@+id/delete_counter"
+          android:icon="@drawable/ic_delete"
+          android:title="@string/delete_counter"
+          android:showAsAction="ifRoom" />
+</menu>

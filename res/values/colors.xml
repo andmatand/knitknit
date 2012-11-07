@@ -2,6 +2,6 @@
 <resources>
 	<!-- Counter -->
 	<color name="counter">#fffffae0</color>
-	<color name="counter_pressed">#ffed7575</color>
+	<color name="counter_selected">#ffed7575</color>
 	<color name="counter_numrepeats">#ff333333</color>
 </resources>

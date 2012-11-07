@@ -27,6 +27,7 @@
 
 package com.example.knitknit;
 
+import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -44,29 +45,32 @@ public class Project {
     private long mTotalRows;
     private String mDateCreated;
     private String mDateOpened;
+
+    // Child Objects
     private ArrayList<Counter> mCounters;
-    private Context mContext;
+    private ArrayList<Counter> mDeletedCounters;
 
     // Views
     private ProjectWrapper mWrapper;
     private LinearLayout mCounterWrapper;
 
     // UI-Related
-    private Counter mSelectedCounter;
+    private CountingLand mActivity;
 
     public Project(long id, String name, long totalRows, String dateCreated, String dateOpened,
-                   ArrayList<Counter> counters, Context context) {
+                   Context context) {
         mId = id;
         mName = name;
         mTotalRows = totalRows;
         mDateCreated = dateCreated;
         mDateOpened = dateOpened;
-        mCounters = counters;
-        mContext = context;
+
+        mCounters = new ArrayList<Counter>();
+        mDeletedCounters = new ArrayList<Counter>();
 
         // Inflate a copy of the project layout
         LayoutInflater inflater;
-        inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         mWrapper = (ProjectWrapper) inflater.inflate(R.layout.project, null, false);
 
         // Give the ProjectWrapper object a reference to us as its project
@@ -74,8 +78,6 @@ public class Project {
 
         // Find the counter wrapper view
         mCounterWrapper = (LinearLayout) mWrapper.findViewById(R.id.project_counterwrapper);
-
-        attachCounters();
     }
 
     public void addCounter(Counter counter) {
@@ -86,16 +88,7 @@ public class Project {
         counter.refreshViews();
         mCounterWrapper.addView(counter.getWrapper());
 
-        sizeCounters();
-    }
-
-    public void attachCounters() {
-        // Attach all of our counters to our counter wrapper view
-        for (Iterator it = mCounters.iterator(); it.hasNext(); ) {
-            Counter counter = (Counter) it.next();
-
-            mCounterWrapper.addView(counter.getWrapper());
-        }
+        counter.setProject(this);
     }
 
     public void decrease() {
@@ -109,6 +102,19 @@ public class Project {
         refreshTotal();
     }
 
+    public void deleteCounter(Counter counter) {
+        // Remove the counter's view
+        mCounterWrapper.removeView(counter.getWrapper());
+
+        // Add the counter to our list of counters to delete on our next save
+        mDeletedCounters.add(counter);
+
+        // Remove the counter from our list of counters
+        mCounters.remove(counter);
+
+        refreshViews();
+    }
+
     public ArrayList<Counter> getCounters() {
         return mCounters;
     }
@@ -119,6 +125,10 @@ public class Project {
 
     public String getDateCreated() {
         return mDateCreated;
+    }
+
+    public ArrayList<Counter> getDeletedCounters() {
+        return mDeletedCounters;
     }
 
     public String getDateOpened() {
@@ -153,7 +163,6 @@ public class Project {
     }
 
     private void refreshTotal() {
-        
     }
 
     public void refreshViews() {
@@ -168,6 +177,10 @@ public class Project {
         }
     }
 
+    public void setActivity(CountingLand activity) {
+        mActivity = activity;
+    }
+
     public void setDateOpened(String dateOpened) {
         mDateOpened = dateOpened;
     }
@@ -179,31 +192,14 @@ public class Project {
         Log.w(TAG, "wrapper height: " + mWrapper.getHeight());
         Log.w(TAG, "counterHeight: " + counterHeight);
 
-        // Set the right padding
-        //int rightPadding;
-        //rightPadding = 0;
-        //if (mCounters.size() == 1 || !mPrefs.getBoolean(Settings.PREF_SHOWNUMREPEATS, false)) {
-        //    rightPadding = 0;
-        //} else {
-            //rightPadding = mWrapper.getWidth() - (int) (counterSize * 2.3);
-        //}
-        //mCounterWrapper.setPadding(0, 0, rightPadding, 0);
-        //Log.w(TAG, "set padding to " + rightPadding);
-
         for (Iterator it = mCounters.iterator(); it.hasNext(); ) {
             Counter counter = (Counter) it.next();
 
             counter.getWrapper().getLayoutParams().height = counterHeight;
-
-            // If there are multiple counters
-            //if (mCounters.size() > 1) {
-            //    counter.setSingleMode(false);
-
-            //    // Set showing numRepeats based on prference
-            //    c.setShowNumRepeats(mPrefs.getBoolean(Settings.PREF_SHOWNUMREPEATS, false));
-            //} else {
-            //    c.setSingleMode(true);
-            //}
         }
+    }
+
+    public void startActionModeForCounter(Counter counter) {
+        mActivity.startActionModeForCounter(counter);
     }
 }

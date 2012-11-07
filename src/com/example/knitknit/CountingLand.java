@@ -1,6 +1,5 @@
 /*
- * Copyright 2012 Andrew Anderson
- * All rights reserved.
+ * Copyright 2012 Andrew Anderson * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -31,6 +30,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MenuInflater;
@@ -41,6 +41,7 @@ public class CountingLand extends Activity {
 
     private DataWrangler mDataWrangler;
     private Project mProject;
+    private ActionMode mActionMode;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -73,6 +74,7 @@ public class CountingLand extends Activity {
         mDataWrangler = new DataWrangler(this);
         mDataWrangler.open();
         mProject = mDataWrangler.retrieveProject(projectID);
+        mProject.setActivity(this);
 
         // Update the dateOpened on the project
         mDataWrangler.touchProject(mProject);
@@ -90,6 +92,13 @@ public class CountingLand extends Activity {
 
 
     // Lifecycle Management Methods
+    //@Override
+    //protected void onDestroy() {
+    //    super.onDestroy();
+
+    //    mDataWrangler.close();
+    //}
+
     @Override
     protected void onPause() {
         super.onPause();
@@ -112,6 +121,7 @@ public class CountingLand extends Activity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.countingland, menu);
+
         return true;
     }
 
@@ -133,6 +143,7 @@ public class CountingLand extends Activity {
 
                 // Add the counter object to the project
                 mProject.addCounter(counter);
+                mProject.refreshViews();
                 return true;
             default:
                 return false;
@@ -144,7 +155,84 @@ public class CountingLand extends Activity {
     public Project getProject() {
         return mProject;
     }
+
     public static boolean getZeroMode() {
         return false;
     }
+
+    public void startActionModeForCounter(Counter counter) {
+        if (mActionMode == null) {
+            // Tell the ProjectWrapper to ignore touch events while we are in action mode
+            ((ProjectWrapper) findViewById(R.id.project_wrapper)).setRespondToTouch(false);
+
+            mActionMode = startActionMode(mActionModeCallback);
+            mActionMode.setTag(counter);
+
+            // Highlight thte selected counter
+            counter.getWrapper().setSelected(true);
+            counter.refreshViews();
+        }
+    }
+
+
+    // Contextual Action Mode Callbacks
+    private ActionMode.Callback mActionModeCallback = new ActionMode.Callback() {
+        @Override
+        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            // Inflate a menu resource providing context menu items
+            MenuInflater inflater = mode.getMenuInflater();
+            inflater.inflate(R.menu.counter_context, menu);
+
+            // If there is less than 2 counters
+            if (mProject.getCounters().size() < 2) {
+                // Hide the "delete" menu item
+                MenuItem deleteItem = menu.findItem(R.id.delete_counter);
+                deleteItem.setVisible(false);
+            }
+
+            return true;
+        }
+
+        // Called each time the action mode is shown. Always called after onCreateActionMode, but
+        // may be called multiple times if the mode is invalidated.
+        @Override
+        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            return false; // Return false if nothing is done
+        }
+
+        // Called when the user selects a contextual menu item
+        @Override
+        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            Counter counter = (Counter) mode.getTag();
+
+            switch (item.getItemId()) {
+                case R.id.decrease_counter:
+                    counter.decrease();
+                    return true;
+                case R.id.delete_counter:
+                    mProject.deleteCounter(counter);
+                    mode.finish(); // Action picked, so close the CAB
+                    return true;
+                case R.id.increase_counter:
+                    counter.increase();
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        // Called when the user exits the action mode
+        @Override
+        public void onDestroyActionMode(ActionMode mode) {
+            mActionMode = null;
+
+            // Un-highlight the selected counter
+            Counter counter = (Counter) mode.getTag();
+            counter.getWrapper().setSelected(false);
+            mProject.refreshViews();
+
+            // Tell the ProjectWrapper to stop ignoring touch events
+            ((ProjectWrapper) findViewById(R.id.project_wrapper)).setRespondToTouch(true);
+        }
+    };
 }

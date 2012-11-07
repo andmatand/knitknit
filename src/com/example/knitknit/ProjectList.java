@@ -92,6 +92,7 @@ public class ProjectList extends ListActivity implements LoaderManager.LoaderCal
                 mode.setTitle(numSelected + " selected");
 
                 MenuItem renameItem = mode.getMenu().findItem(R.id.rename_project);
+
                 // If there is more than one list item selected
                 if (numSelected > 1) {
                     // Hide the rename button
@@ -269,7 +270,6 @@ public class ProjectList extends ListActivity implements LoaderManager.LoaderCal
         switch (item.getItemId()) {
             case R.id.new_project:
                 showNameDialog(-1, null);
-                //mDataWrangler.addTestProject();
 
                 return true;
             default:

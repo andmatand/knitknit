@@ -30,6 +30,7 @@ package com.example.knitknit;
 import android.content.Context;
 import android.content.res.Resources;
 import android.util.Log;
+import android.view.ActionMode;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -50,14 +51,16 @@ public class Counter implements OnLongClickListener {
     private long mPatternLength;
     private long mNumRepeats;
 
+    private Project mProject;
+
     // Views
     private LinearLayout mWrapper;
     private TextView mRepeatsView;
     private FittedTextView mValueView;
 
     // UI-Related
-    private boolean mPressed = false;
     private Resources mResources;
+    private Context mContext;
 
     // Methods
     public Counter(long id, long projectId, String name, long value, boolean countUp,
@@ -71,15 +74,17 @@ public class Counter implements OnLongClickListener {
         mPatternLength = patternLength;
         mNumRepeats = numRepeats;
 
+        mContext = context;
+
         // Inflate a new copy of the counter layout
         LayoutInflater inflater;
-        inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         mWrapper = (LinearLayout) inflater.inflate(R.layout.counter, null, false);
         mValueView = (FittedTextView) mWrapper.getChildAt(0);
         mRepeatsView = (TextView) mWrapper.getChildAt(1);
 
         // Get the resources (for setting text colors)
-        mResources = context.getResources();
+        mResources = mContext.getResources();
 
         mWrapper.setOnLongClickListener(this);
     }
@@ -173,21 +178,6 @@ public class Counter implements OnLongClickListener {
         return xy[1];
     }
 
-    public void highlight() {
-        // Highlight the counter to show user that a longClick is imminent
-
-        // Use the post method so it runs in the main UI thread intead
-        // of the timer thread
-        mWrapper.post(new Runnable() {
-            public void run() {
-                // Set the color
-                mValueView.setTextColor(mResources.getColor(R.color.counter_pressed));
-            }
-        });
-
-        mPressed = true;
-    }
-
     public void increase() {
         // Add or subtract 1, depending on countUp setting
         if (mCountUp) {
@@ -200,34 +190,36 @@ public class Counter implements OnLongClickListener {
     }
 
     public void refreshViews() {
-        // Use the post method so it runs in the main UI thread intead
-        // of the timer thread
-        mWrapper.post(new Runnable() {
-            public void run() {
-                if (mPatternEnabled) {
-                    mRepeatsView.setVisibility(View.VISIBLE);
-                    mValueView.setGravity(Gravity.RIGHT);
-                }
-                else {
-                    mRepeatsView.setVisibility(View.GONE);
-                    mValueView.setGravity(Gravity.CENTER);
-                }
+        if (mPatternEnabled) {
+            mRepeatsView.setVisibility(View.VISIBLE);
+            mValueView.setGravity(Gravity.RIGHT);
+        }
+        else {
+            mRepeatsView.setVisibility(View.GONE);
+            mValueView.setGravity(Gravity.CENTER);
+        }
 
-                // Update the TextViews with the counter's current values
-                mValueView.setText(String.valueOf(getDisplayValue()));
-                mRepeatsView.setText(String.valueOf(mNumRepeats));
+        // Update the TextViews with the counter's current values
+        mValueView.setText(String.valueOf(getDisplayValue()));
+        mRepeatsView.setText(String.valueOf(mNumRepeats));
 
-                // Set the color
-                mValueView.setTextColor(mResources.getColor(R.color.counter));
-            }
-        });
+        // Set the color of the value view
+        mValueView.setTextColor(mResources.getColor(mWrapper.isSelected() ?
+                                                    R.color.counter_selected :
+                                                    R.color.counter));
+    }
+
+    public void setProject(Project project) {
+        mProject = project;
     }
 
 
     // OnLongClickListener Callbacks
     public boolean onLongClick(View v) {
-        highlight();
-        ((ProjectWrapper) v.getParent().getParent()).setDoneWithTouch(true);
+        ProjectWrapper projectWrapper = (ProjectWrapper) v.getParent().getParent();
+        projectWrapper.setDoneWithTouch(true);
+
+        mProject.startActionModeForCounter(this);
 
         return true;
     }

@@ -39,23 +39,35 @@ public class ProjectWrapper extends RelativeLayout {
 
     private boolean mDoneWithTouch;
     private Project mProject;
+    private boolean mRespondToTouch;
 
     public ProjectWrapper(Context context) {
         super(context);
-
-        this.setClickable(true);
+        init();
     }
 
     public ProjectWrapper(Context context, AttributeSet attrs) {
         super(context, attrs);
+        init();
+    }
 
+    private void init() {
         this.setClickable(true);
+        mRespondToTouch = true;
+    }
+
+    public void setRespondToTouch(boolean tf) {
+        mRespondToTouch = tf;
     }
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent event) {
         Log.w(TAG, "pointer count: " + event.getPointerCount() +
                    ", event action: " + event.getActionMasked());
+
+        if (!mRespondToTouch) {
+            return false;
+        }
 
         switch(event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:

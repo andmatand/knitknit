@@ -155,19 +155,6 @@ public class DataWrangler {
             projectCursor.moveToFirst();
         }
 
-        // Create an arraylist of counter objects
-        ArrayList<Counter> counters = new ArrayList<Counter>();
-
-        // Get a cursor over all the counters in this project
-        Cursor counterCursor = getCounterCursor(projectId);
-
-        // Loop over each row with the cursor
-        do {
-            // Add a new Counter object to the counter ArrayList
-            long counterId = counterCursor.getLong(counterCursor.getColumnIndex(COUNTER_KEY_ID));
-            counters.add(retrieveCounter(counterId));
-        } while (counterCursor.moveToNext());
-
         // Create a Project object with all the info we got
         Project project = new Project(
             projectCursor.getLong(projectCursor.getColumnIndex(PROJECT_KEY_ID)),
@@ -175,8 +162,17 @@ public class DataWrangler {
             projectCursor.getLong(projectCursor.getColumnIndex(PROJECT_KEY_TOTALROWS)),
             projectCursor.getString(projectCursor.getColumnIndex(PROJECT_KEY_DATECREATED)),
             projectCursor.getString(projectCursor.getColumnIndex(PROJECT_KEY_DATEOPENED)),
-            counters,
             mContext);
+
+        // Get a cursor over all the counters in this project
+        Cursor counterCursor = getCounterCursor(projectId);
+
+        // Iterate through the counter rows
+        do {
+            // Add a new Counter object to the Project object
+            long id = counterCursor.getLong(counterCursor.getColumnIndex(COUNTER_KEY_ID));
+            project.addCounter(retrieveCounter(id));
+        } while (counterCursor.moveToNext());
         
         // Close the cursors
         counterCursor.close();
@@ -224,6 +220,14 @@ public class DataWrangler {
             updateCounter(counter.getId(), counter.getName(), counter.getValue(),
                           counter.getCountUp(), counter.getPatternEnabled(),
                           counter.getPatternLength(), counter.getNumRepeats());
+        }
+
+        for (Iterator it = project.getDeletedCounters().iterator(); it.hasNext(); ) {
+            Counter counter = (Counter) it.next();
+
+            if (deleteCounter(counter.getId())) {
+                it.remove();
+            }
         }
     }
 

@@ -15,4 +15,10 @@
 
     <!-- CountingLand -->
     <string name="new_counter">New counter</string>
+
+    <!-- Counter Contextual Action Mode Menu -->
+    <string name="decrease_counter">Decrease counter</string>
+    <string name="delete_counter">Delete counter</string>
+    <string name="edit_counter">Edit counter</string>
+    <string name="increase_counter">Increase counter</string>
 </resources>
