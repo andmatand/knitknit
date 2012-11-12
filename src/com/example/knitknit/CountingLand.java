@@ -87,6 +87,7 @@ public class CountingLand extends Activity {
 
         // Attach the project's view to our view
         ViewGroup root = (ViewGroup) findViewById(android.R.id.content);
+        mProject.inflate(root);
         root.addView(mProject.getWrapper());
     }
 

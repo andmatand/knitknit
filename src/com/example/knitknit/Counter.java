@@ -30,11 +30,13 @@ package com.example.knitknit;
 import android.content.Context;
 import android.content.res.Resources;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.ActionMode;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnLongClickListener;
+import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -56,11 +58,11 @@ public class Counter implements OnLongClickListener {
     // Views
     private LinearLayout mWrapper;
     private TextView mRepeatsView;
-    private FittedTextView mValueView;
+    private TextView mValueView;
 
     // UI-Related
-    private Resources mResources;
     private Context mContext;
+    private Resources mResources;
 
     // Methods
     public Counter(long id, long projectId, String name, long value, boolean countUp,
@@ -76,28 +78,26 @@ public class Counter implements OnLongClickListener {
 
         mContext = context;
 
-        // Inflate a new copy of the counter layout
-        LayoutInflater inflater;
-        inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        mWrapper = (LinearLayout) inflater.inflate(R.layout.counter, null, false);
-        mValueView = (FittedTextView) mWrapper.getChildAt(0);
-        mRepeatsView = (TextView) mWrapper.getChildAt(1);
-
         // Get the resources (for setting text colors)
         mResources = mContext.getResources();
-
-        mWrapper.setOnLongClickListener(this);
     }
 
     private void addToValue(int amount) {
         mValue += amount;
         if (mPatternEnabled) {
             if (mValue > mPatternLength - 1) {
-                mNumRepeats++;
+                if (mCountUp) {
+                    mNumRepeats++;
+                } else {
+                    mNumRepeats--;
+                }
                 mValue = 0;
-            }
-            else if (mValue < 0) {
-                mNumRepeats++;
+            } else if (mValue < 0) {
+                if (!mCountUp) {
+                    mNumRepeats++;
+                } else {
+                    mNumRepeats--;
+                }
                 mValue = mPatternLength - 1;
             }
         }
@@ -189,24 +189,55 @@ public class Counter implements OnLongClickListener {
         refreshViews();
     }
 
+    public void inflate(ViewGroup root) {
+        // Inflate a new copy of the counter layout
+        LayoutInflater inflater;
+        inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        mWrapper = (LinearLayout) inflater.inflate(R.layout.counter, root, false);
+        mValueView = (TextView) mWrapper.getChildAt(0);
+        mRepeatsView = (TextView) mWrapper.getChildAt(1);
+
+        mWrapper.setOnLongClickListener(this);
+    }
+
     public void refreshViews() {
+        // DEBUG
+        //mPatternEnabled = true;
+
         if (mPatternEnabled) {
             mRepeatsView.setVisibility(View.VISIBLE);
-            mValueView.setGravity(Gravity.RIGHT);
-        }
-        else {
+            //mValueView.setGravity(Gravity.RIGHT);
+        } else {
             mRepeatsView.setVisibility(View.GONE);
-            mValueView.setGravity(Gravity.CENTER);
+            //mValueView.setGravity(Gravity.CENTER);
         }
+
+        resizeText();
 
         // Update the TextViews with the counter's current values
         mValueView.setText(String.valueOf(getDisplayValue()));
+        mValueView.requestLayout();
+        mValueView.append("\uFEFF"); // Prevent dumb ICS bug with TextView resizing
         mRepeatsView.setText(String.valueOf(mNumRepeats));
 
         // Set the color of the value view
         mValueView.setTextColor(mResources.getColor(mWrapper.isSelected() ?
                                                     R.color.counter_selected :
                                                     R.color.counter));
+    }
+
+    private void resizeText() {
+        int numCounters = mProject.getCounters().size();
+        int length = String.valueOf(getDisplayValue()).length();
+
+        float dp = 250 / numCounters;
+
+        if (length > 2 && numCounters == 1) {
+            dp -= dp / length;
+        }
+
+        mValueView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, dp);
+        mRepeatsView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, dp / 2);
     }
 
     public void setProject(Project project) {

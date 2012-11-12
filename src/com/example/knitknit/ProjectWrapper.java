@@ -32,9 +32,10 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnTouchListener;
 import android.widget.RelativeLayout;
 
-public class ProjectWrapper extends RelativeLayout {
+public class ProjectWrapper extends RelativeLayout implements OnTouchListener {
     private static final String TAG = "knitknit-ProjectWrapper";
 
     private boolean mDoneWithTouch;
@@ -52,7 +53,8 @@ public class ProjectWrapper extends RelativeLayout {
     }
 
     private void init() {
-        this.setClickable(true);
+        //this.setClickable(true);
+        setOnTouchListener(this);
         mRespondToTouch = true;
     }
 
@@ -62,15 +64,30 @@ public class ProjectWrapper extends RelativeLayout {
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent event) {
-        Log.w(TAG, "pointer count: " + event.getPointerCount() +
-                   ", event action: " + event.getActionMasked());
+        Log.w(TAG, "in onInterceptTouchEvent()");
 
         if (!mRespondToTouch) {
-            return false;
+            // Consume the event
+            return true;
+        }
+
+        return onTouch(null, event);
+    }
+
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        Log.w(TAG, "in onTouch()");
+        Log.w(TAG, "pointer count: " + event.getPointerCount() +
+                   ", event action masked: " + event.getActionMasked());
+
+        if (!mRespondToTouch) {
+            // Consume the event
+            return true;
         }
 
         switch(event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
+                Log.w(TAG, "down");
                 mDoneWithTouch = false;
                 break;
             case MotionEvent.ACTION_POINTER_UP:
@@ -90,8 +107,14 @@ public class ProjectWrapper extends RelativeLayout {
                 break;
         }
 
-        // Otherwise let the event pass through to the children
-        return false;
+        // If the touch was directly on this view
+        if (v != null) {
+            // Consume the event
+            return true;
+        } else {
+            // Let the event pass on to the children
+            return false;
+        }
     }
 
     public void setDoneWithTouch(boolean tf) {

@@ -31,6 +31,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import java.util.ArrayList;
 import java.util.Date;
@@ -55,6 +56,7 @@ public class Project {
     private LinearLayout mCounterWrapper;
 
     // UI-Related
+    private Context mContext;
     private CountingLand mActivity;
 
     public Project(long id, String name, long totalRows, String dateCreated, String dateOpened,
@@ -65,19 +67,11 @@ public class Project {
         mDateCreated = dateCreated;
         mDateOpened = dateOpened;
 
+        mContext = context;
+
         mCounters = new ArrayList<Counter>();
         mDeletedCounters = new ArrayList<Counter>();
 
-        // Inflate a copy of the project layout
-        LayoutInflater inflater;
-        inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        mWrapper = (ProjectWrapper) inflater.inflate(R.layout.project, null, false);
-
-        // Give the ProjectWrapper object a reference to us as its project
-        mWrapper.setProject(this);
-
-        // Find the counter wrapper view
-        mCounterWrapper = (LinearLayout) mWrapper.findViewById(R.id.project_counterwrapper);
     }
 
     public void addCounter(Counter counter) {
@@ -85,10 +79,23 @@ public class Project {
         mCounters.add(counter);
 
         // Attach the new counter's view to our counter wrapper view
-        counter.refreshViews();
-        mCounterWrapper.addView(counter.getWrapper());
+        attachCounter(counter);
 
         counter.setProject(this);
+    }
+
+    private void attachCounter(Counter counter) {
+        if (mCounterWrapper != null) {
+            counter.inflate(mCounterWrapper);
+            mCounterWrapper.addView(counter.getWrapper());
+        }
+    }
+
+    private void attachCounters() {
+        for (Iterator it = mCounters.iterator(); it.hasNext(); ) {
+            Counter counter = (Counter) it.next();
+            attachCounter(counter);
+        }
     }
 
     public void decrease() {
@@ -152,6 +159,7 @@ public class Project {
     }
 
     public void increase() {
+        Log.w(TAG, "in increase()");
         // Adds (or subtracts, depending on counter setting) to all counters
         for (Iterator it = mCounters.iterator(); it.hasNext(); ) {
             Counter counter = (Counter) it.next();
@@ -162,13 +170,27 @@ public class Project {
         refreshTotal();
     }
 
+    public void inflate(ViewGroup root) {
+        // Inflate a copy of the project layout
+        LayoutInflater inflater;
+        inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        //mWrapper = (ProjectWrapper) inflater.inflate(R.layout.project, root, false);
+        mWrapper = (ProjectWrapper) inflater.inflate(R.layout.project, null, false);
+
+        // Give the ProjectWrapper object a reference to us as its project
+        mWrapper.setProject(this);
+
+        // Find the counter wrapper view
+        mCounterWrapper = (LinearLayout) mWrapper.findViewById(R.id.project_counterwrapper);
+
+        attachCounters();
+    }
+
     private void refreshTotal() {
     }
 
     public void refreshViews() {
         refreshTotal();
-
-        sizeCounters();
 
         for (Iterator it = mCounters.iterator(); it.hasNext(); ) {
             Counter counter = (Counter) it.next();
@@ -183,20 +205,6 @@ public class Project {
 
     public void setDateOpened(String dateOpened) {
         mDateOpened = dateOpened;
-    }
-
-    private void sizeCounters() {
-        // Set the maximum height of the counters based on the available height
-        // divided by the number of counters
-        int counterHeight = (int) (mWrapper.getHeight() / mCounters.size());
-        Log.w(TAG, "wrapper height: " + mWrapper.getHeight());
-        Log.w(TAG, "counterHeight: " + counterHeight);
-
-        for (Iterator it = mCounters.iterator(); it.hasNext(); ) {
-            Counter counter = (Counter) it.next();
-
-            counter.getWrapper().getLayoutParams().height = counterHeight;
-        }
     }
 
     public void startActionModeForCounter(Counter counter) {
