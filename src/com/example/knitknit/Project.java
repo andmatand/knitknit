@@ -29,6 +29,7 @@ package com.example.knitknit;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
@@ -170,7 +171,7 @@ public class Project {
         refreshTotal();
     }
 
-    public void inflate(ViewGroup root) {
+    public void inflate(ViewGroup root, int orientation) {
         // Inflate a copy of the project layout
         LayoutInflater inflater;
         inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -182,6 +183,10 @@ public class Project {
 
         // Find the counter wrapper view
         mCounterWrapper = (LinearLayout) mWrapper.findViewById(R.id.project_counterwrapper);
+
+        // Set the orientation of the counter wrapper based on the screen's orientation
+        mCounterWrapper.setOrientation(orientation == Configuration.ORIENTATION_LANDSCAPE ?
+                                       0 : 1);
 
         attachCounters();
     }

@@ -28,6 +28,7 @@
 package com.example.knitknit;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.util.Log;
 import android.util.TypedValue;
@@ -197,6 +198,20 @@ public class Counter implements OnLongClickListener {
         mValueView = (TextView) mWrapper.getChildAt(0);
         mRepeatsView = (TextView) mWrapper.getChildAt(1);
 
+        int orientation = mResources.getConfiguration().orientation;
+
+        // Adjust the layout based on the screen orientation
+        LinearLayout.LayoutParams params;
+        if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+            params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, 0);
+        } else {
+            params = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT);
+        }
+        params.gravity = Gravity.CENTER;
+        params.weight = 1;
+        mWrapper.setOrientation(0); // Horizontal
+        mWrapper.setLayoutParams(params);
+
         mWrapper.setOnLongClickListener(this);
     }
 
@@ -230,14 +245,22 @@ public class Counter implements OnLongClickListener {
         int numCounters = mProject.getCounters().size();
         int length = String.valueOf(getDisplayValue()).length();
 
-        float dp = 250 / numCounters;
+        float dp = 225 / numCounters;
 
         if (length > 2 && numCounters == 1) {
             dp -= dp / length;
         }
 
         mValueView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, dp);
-        mRepeatsView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, dp / 2);
+        mRepeatsView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, dp / 4);
+
+        // Get the screen's density scale
+        final float scale = mResources.getDisplayMetrics().density;
+        // Convert the dps to pixels, based on density scale
+        int paddingTop = (int) ((dp / 1.5) * scale + 0.5f);
+
+        // Set the paddingTop of the repeats view
+        mRepeatsView.setPadding(0, paddingTop, 0, 0);
     }
 
     public void setProject(Project project) {

@@ -71,7 +71,7 @@ public class ProjectList extends ListActivity implements LoaderManager.LoaderCal
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.projectlist);
-        setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT); 
+        //setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT); 
 
         // Create a wrapper layout in which to center a progress bar
         mProgressBarWrapper = new LinearLayout(this);
