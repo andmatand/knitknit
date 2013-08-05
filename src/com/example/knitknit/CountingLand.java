@@ -1,30 +1,3 @@
-/*
- * Copyright 2012 Andrew Anderson
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- * 
- *     1. Redistributions of source code must retain the above copyright
- *        notice, this list of conditions and the following disclaimer.
- * 
- *     2. Redistributions in binary form must reproduce the above copyright
- *        notice, this list of conditions and the following disclaimer in the
- *        documentation and/or other materials provided with the distribution.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- */
-
 package com.example.knitknit;
 
 import android.app.Activity;
@@ -39,6 +12,7 @@ import android.view.ViewGroup;
 
 public class CountingLand extends Activity {
     private static final String TAG = "knitknit-CountingLand";
+    public static Counter selectedCounter = null;
 
     private DataWrangler mDataWrangler;
     private Project mProject;
@@ -173,6 +147,8 @@ public class CountingLand extends Activity {
             // Highlight thte selected counter
             counter.getWrapper().setSelected(true);
             counter.refreshViews();
+
+            selectedCounter = counter;
         }
     }
 
@@ -213,10 +189,20 @@ public class CountingLand extends Activity {
                     return true;
                 case R.id.delete_counter:
                     mProject.deleteCounter(counter);
-                    mode.finish(); // Action picked, so close the CAB
+
+                    // Close the Contextual Action Bar
+                    mode.finish();
                     return true;
                 case R.id.increase_counter:
                     counter.increase();
+                    return true;
+                case R.id.edit_counter:
+                    // Start the CounterEditor activity
+                    Intent intent = new Intent(CountingLand.this, CounterEditor.class);
+                    startActivity(intent);
+
+                    // Close the Contextual Action Bar
+                    mode.finish();
                     return true;
                 default:
                     return false;

@@ -21,4 +21,13 @@
     <string name="delete_counter">Delete counter</string>
     <string name="edit_counter">Edit counter</string>
     <string name="increase_counter">Increase counter</string>
+
+    <!-- CounterEditor -->
+    <string name="countereditor_label">Edit Counter</string>
+    <string name="countereditor_name_hint">Name</string>
+    <string name="countereditor_updown_text">Count</string>
+    <string name="countereditor_updown_up">up</string>
+    <string name="countereditor_updown_down">down</string>
+    <string name="countereditor_pattern_checkbox">Pattern repeats every</string>
+    <string name="countereditor_pattern_endtext">rows</string>
 </resources>

@@ -15,7 +15,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="CountingLand">
-        </activity>
+        <activity android:name="CountingLand" />
+        <activity android:name="CounterEditor" />
     </application>
 </manifest>
