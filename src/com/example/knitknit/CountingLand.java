@@ -144,6 +144,12 @@ public class CountingLand extends Activity {
             mActionMode = startActionMode(mActionModeCallback);
             mActionMode.setTag(counter);
 
+            // If the selected counter has a name
+            if (counter.getName() != null) {
+                // Set the action bar title to the name of the counter
+                mActionMode.setTitle(counter.getName());
+            }
+
             // Highlight thte selected counter
             counter.getWrapper().setSelected(true);
             counter.refreshViews();
