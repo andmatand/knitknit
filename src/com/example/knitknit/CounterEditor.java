@@ -15,7 +15,7 @@ import android.widget.RadioButton;
 import android.widget.TextView;
 
 public class CounterEditor extends Activity {
-    private static final String TAG = "bunny-knitknit-CounterEdit";
+    private static final String TAG = "knitknit-CounterEditor";
     private Counter mCounter;
     private Resources mResources;
 
